@@ -1,0 +1,18 @@
+module dlatch(d, clk, enable, q, q_bar);
+// clk and enable are included for future use. They should
+be combined
+// using an and gate and applied just as an enable signal.
+input d, clk, enable;
+output reg q, q_bar;
+wire dnot, nand1, nand2 ,nand3, nand4;
+not g1(dnot,d);
+ nand g2(nand1,d,enable);
+ nand g3(nand2,dnot,enable);
+nand g4(nand3,nand1,nand4);
+nand g5(nand4,nand2,nand3);
+ always @(nand3 or nand4)
+ begin
+ q=nand3;
+ q_bar=nand4;
+ end
+endmodule 
