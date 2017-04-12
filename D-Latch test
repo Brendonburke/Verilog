@@ -1,0 +1,16 @@
+module test_latch;
+reg d,clk,enable;
+wire q, q_bar;
+ dlatch test(d,clk,enable,q,q_bar);
+initial
+ begin
+d=1'b0;
+enable=1'b0;
+ end
+ always #4 enable =~enable;
+ always #8 d=~d;
+ initial $monitor("enable = %b, d =
+%b, q = %b, q_bar = %b",
+enable,d,q,q_bar);
+ initial #80 $stop;
+endmodule
