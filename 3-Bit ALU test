@@ -1,0 +1,61 @@
+// Code your testbench here
+// or browse Examples
+module ALU__Test;
+  reg [2:0] A,B,S;
+ reg Cin;
+  wire [2:0] F;
+wire Cout,OVR;
+  ALU test(A,B,Cin,S,F,Cout,OVR);
+initial
+begin
+$dumpfile("wave.vcd");
+$dumpvars(1);  
+A=5;
+B=2;
+S=0;
+Cin=0;
+#10
+A=5;
+B=2;
+S=1;
+Cin=1;
+#10
+A=5;
+B=2;
+S=2;
+Cin=1;
+#10
+A=5;
+B=2;
+S=3;
+Cin=0;
+#10
+A=5;
+B=2;
+S=4;
+Cin=0;
+#10
+A=5;
+B=2;
+S=5;
+Cin=0;
+#10 
+A=5;
+B=2;
+S=6;
+Cin=0;  
+#10 
+A=5;
+B=2;
+S=7;
+Cin=0; 
+end
+  initial begin
+    $display("Test Start");
+    $display("Brendon Burke");
+  end
+  initial 
+  $monitor("S = %d, A = %d, B = %d, Cin = %b, F = %d, Cout = %b, OVR = %b",S,A,B,Cin,F,Cout,OVR);
+  initial 
+    $display("Test End");
+endmodule
