@@ -1,0 +1,158 @@
+// Code your design here
+//3-bit ALU: similar to 74LS382 ALU chip
+/*
+0 : clear
+1 : B - A
+2 : A - B
+3 : A + B
+4 : A XOR B
+5 : A or B
+6 : A and B
+7 : preset
+*/
+
+module mux(f, p0, p1, p2, p3, p4, p5, p6, p7, S);
+input p0, p1, p2, p3, p4, p5, p6, p7;
+input [2:0] S;
+output  f;
+wire and1,and2,and3,and4,and5,and6,and7,and8;
+wire S0n,S1n,S2n, out;
+  not g1(S0n,S[0]);
+  not g2(S1n,S[1]);
+  not g3(S2n,S[2]);
+  and g4(and1,p0,S0n,S1n,S2n);
+  and g5(and2,p1,S[0],S1n,S2n);
+  and g6(and3,p2,S0n,S[1],S2n);
+  and g7(and4,p3,S[0],S[1],S2n);
+  and g8(and5,p4,S0n,S1n,S[2]);
+  and g9(and6,p5,S[0],S1n,S[2]);
+  and g20(and7,p6,S0n,S[1],S[2]);
+  and g11(and8,p7,S[0],S[1],S[2]);
+  or out1(f,and1,and2,and3,and4,and5,and6,and7,and8);
+  
+endmodule
+
+//bitwise xor
+module xor_out(C, A, B);
+input [2:0] A, B;
+output [2:0] C;
+  xor g1(C[0],A[0],B[0]);
+  xor g2(C[1],A[1],B[1]);
+  xor g3(C[2],A[2],B[2]);
+endmodule
+
+//extra bitwise or module
+module or_out(C, A, B);
+input [2:0] A, B;
+output [2:0] C;
+   or g1(C[0],A[0],B[0]);
+   or g2(C[1],A[1],B[1]);
+   or g3(C[2],A[2],B[2]);
+endmodule
+
+//extra bitwise and module
+module and_out(C, A, B);
+input [2:0] A, B;
+output [2:0] C;
+   and g1(C[0],A[0],B[0]);
+   and g2(C[1],A[1],B[1]);
+   and g3(C[2],A[2],B[2]);
+endmodule
+
+//gate level fulladder
+module fulladder(c, cout, a, b, cin);
+input a, b, cin;
+output c, cout;
+wire  xor1,and1,and2;
+  xor g1(xor1,a,b);
+  and g2(and1,a,b);
+  xor g3(c,xor1,cin);
+  and g4(and2,xor1,cin);
+  or out(cout,and1,and2);
+endmodule
+
+//ripple carry adder with overflow
+module ripplecarryadder(C, OVR, Cout, A, B, Cin);
+input [2:0] A, B;
+input Cin;
+output [2:0] C;
+output OVR, Cout;
+wire cout1,cout2;
+  fulladder fa1(C[0],cout1,A[0],B[0],Cin);
+  fulladder fa2(C[1],cout2,A[1],B[1],cout1); 
+  fulladder fa3(C[2],Cout,A[2],B[2],cout2);
+  xor ovr(OVR,Cout,cout2);
+endmodule
+
+//Subtractor made from ripple carry adder
+module subtractor(C, OVR, Cout, A, B, Cin);
+input [2:0] A, B;
+input Cin;
+output [2:0] C;
+output OVR, Cout ;
+  wire Coutn;
+  wire [2:0] xor1;
+  xor g1(xor1[0],B[0],Cin);
+  xor g2(xor1[1],B[1],Cin);
+  xor g3(xor1[2],B[2],Cin);
+  ripplecarryadder rca(C, OVR, Coutn, A, xor1, Cin);
+  not (Cout,Coutn);
+endmodule
+//3-Bit ALU
+module ALU(A, B, Cin, S, F, Cout, OVR);
+input [2:0] A, B, S;
+input Cin;
+output reg [2:0] F;
+output reg Cout, OVR;
+  
+// CLEAR : S = 0
+  wire [2:0]F1 = 3'b000;
+  wire Cout1 = 0;
+  wire OVR1 = 0;
+  
+// B - A : S = 1
+  wire [2:0]F2;
+  wire Cout2,OVR2;
+  subtractor sub(F2,OVR2,Cout2,B,A,Cin);
+  
+// A - B : S = 2
+  wire [2:0]F3;
+  wire Cout3,OVR3;
+  subtractor sub2(F3,OVR3,Cout3,A,B,Cin);
+  
+//A + B : S = 3
+  wire [2:0]F4;
+  wire Cout4,OVR4;
+  ripplecarryadder add(F4,OVR4,Cout4,A,B,Cin);
+  
+// A xor B : S = 4
+  wire [2:0]F5;
+  wire Cout5 = 0;
+  wire OVR5 = 0;
+  xor_out xor1(F5,A,B);
+  
+// A or B : S = 5
+  wire [2:0]F6;
+  wire Cout6 = 0;
+  wire OVR6 = 0;
+  or_out or1(F6,A,B);
+  
+// A and B : S = 6
+  wire [2:0]F7;
+  wire Cout7 = 0;
+  wire OVR7 = 0; 
+  and_out and1(F7,A,B);
+  
+// PRESET : S = 7
+  wire [2:0]F8 = 7;
+  wire Cout8 = 0;
+  wire OVR8 = 0;  
+
+  
+// Outputs
+  mux out1_1(F[0],F1[0],F2[0],F3[0],F4[0],F5[0],F6[0],F7[0],F8[0],S);
+  mux out1_2(F[1],F1[1],F2[1],F3[1],F4[1],F5[1],F6[1],F7[1],F8[1],S);
+  mux out1_3(F[2],F1[2],F2[2],F3[2],F4[2],F5[2],F6[2],F7[2],F8[2],S);
+  mux out2(Cout,Cout1,Cout2,Cout3,Cout4,Cout5,Cout6,Cout7,Cout8,S);
+  mux out3(OVR,OVR1,OVR2,OVR3,OVR4,OVR5,OVR6,OVR7,OVR8,S);
+endmodule
